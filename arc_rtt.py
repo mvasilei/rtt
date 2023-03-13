@@ -1,6 +1,6 @@
 #! /usr/bin/env python2.6
 import sys, os
-import signal, re, xlrd, subprocess, xlsxwriter
+import signal, re, xlrd, subprocess, xlsxwriter, csv
 
 def signal_handler(sig, frame):
     print('Exiting gracefully Ctrl-C detected...')
@@ -57,35 +57,41 @@ def ping(arc_devices):
     return device, raH_values, raT_values
 
 def main():
-    arc = read_from_book()
-    book, min, max, avrg = open_xls_to_write()
-    for i in range(arc.nrows):
-        arc_devices = arc.cell_value(i,1).split('>')
-        device, raH_values, raT_values = ping(arc_devices)
-        print device, raH_values, raT_values
+    count = 0
+    with open('EBA_Arc_status_report.csv') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=':')
+        for row in spamreader:
+            count += 1
+            book, min, max, avrg = open_xls_to_write()
 
-        write_values(min, device, i, 0)
-        write_values(avrg, device, i, 0)
-        write_values(max, device, i, 0)
+            if len(row) > 1 and 'UNCLOSED' not in row[1]:
+                arc_devices = row[1].split('|')[0].split('>')
 
-        write_values(min, arc_devices[0], i, 3)
-        write_values(avrg, arc_devices[0], i, 3)
-        write_values(max, arc_devices[0], i, 3)
+                device, raH_values, raT_values = ping(arc_devices)
+                print device, raH_values, raT_values
 
-        write_values(min, arc_devices[len(arc_devices)-1], i, 4)
-        write_values(avrg, arc_devices[len(arc_devices)-1], i, 4)
-        write_values(max, arc_devices[len(arc_devices)-1], i, 4)
+                write_values(min, device, count, 0)
+                write_values(avrg, device, count, 0)
+                write_values(max, device, count, 0)
 
-        write_values(min, arc.cell_value(i,1), i, 5)
-        write_values(avrg, arc.cell_value(i,1), i, 5)
-        write_values(max, arc.cell_value(i,1), i, 5)
+                write_values(min, arc_devices[0], count, 3)
+                write_values(avrg, arc_devices[0], count, 3)
+                write_values(max, arc_devices[0], count, 3)
 
-        write_values(min, raH_values[0], i, 1)
-        write_values(avrg, raH_values[1], i, 1)
-        write_values(max, raH_values[2], i, 1)
-        write_values(min, raT_values[0], i, 2)
-        write_values(avrg, raT_values[1], i, 2)
-        write_values(max, raT_values[2], i, 2)
+                write_values(min, arc_devices[len(arc_devices)-1], count, 4)
+                write_values(avrg, arc_devices[len(arc_devices)-1], count, 4)
+                write_values(max, arc_devices[len(arc_devices)-1], count, 4)
+
+                write_values(min, row[1], count, 5)
+                write_values(avrg, row[1], count, 5)
+                write_values(max, row[1], count, 5)
+
+                write_values(min, raH_values[0], count, 1)
+                write_values(avrg, raH_values[1], count, 1)
+                write_values(max, raH_values[2], count, 1)
+                write_values(min, raT_values[0], count, 2)
+                write_values(avrg, raT_values[1], count, 2)
+                write_values(max, raT_values[2], count, 2)
 
 
 if __name__ == '__main__':
