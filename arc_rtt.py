@@ -54,8 +54,8 @@ def main():
     with open('EBA_Arc_status_report.csv') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=':')
         for row in spamreader:
-            count += 1
             if len(row) > 1 and 'UNCLOSED' not in row[1] and 'Count' not in row[0]:
+                count += 1
                 arc_devices = row[1].split('|')[0].split('>')
 
                 device, raH_values, raT_values = ping(arc_devices)
