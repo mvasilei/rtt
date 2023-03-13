@@ -6,20 +6,12 @@ def signal_handler(sig, frame):
     print('Exiting gracefully Ctrl-C detected...')
     sys.exit()
 
-def read_from_book():
-    book = xlrd.open_workbook('EBA_Arc_status_report.xlsx')
-    arc = book.sheet_by_name('EBA_Arc_status_report')
-    return arc
-
 def open_xls_to_write():
     book = xlsxwriter.Workbook('RA-EBA-Results.xlsx')
     min = book.add_worksheet('Min')
     max = book.add_worksheet('Max')
     avrg = book.add_worksheet('Avrg')
     return book, min, max, avrg
-
-def close_xls_book(book):
-    book.close()
 
 def write_values(worksheet, value, row, column):
     worksheet.write(row, column, value)
@@ -58,13 +50,12 @@ def ping(arc_devices):
 
 def main():
     count = 0
+    book, min, max, avrg = open_xls_to_write()
     with open('EBA_Arc_status_report.csv') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=':')
         for row in spamreader:
             count += 1
-            book, min, max, avrg = open_xls_to_write()
-
-            if len(row) == 2 and 'UNCLOSED' not in row[1] and 'Count' not in row[0]:
+            if len(row) > 1 and 'UNCLOSED' not in row[1] and 'Count' not in row[0]:
                 arc_devices = row[1].split('|')[0].split('>')
 
                 device, raH_values, raT_values = ping(arc_devices)
@@ -93,6 +84,7 @@ def main():
                 write_values(avrg, raT_values[1], count, 2)
                 write_values(max, raT_values[2], count, 2)
 
+    book.close()
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)  # catch ctrl-c and call handler to terminate the script
