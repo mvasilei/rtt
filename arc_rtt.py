@@ -64,7 +64,7 @@ def main():
             count += 1
             book, min, max, avrg = open_xls_to_write()
 
-            if len(row) > 1 and 'UNCLOSED' not in row[1]:
+            if len(row) == 2 and 'UNCLOSED' not in row[1] and 'Count' not in row[0]:
                 arc_devices = row[1].split('|')[0].split('>')
 
                 device, raH_values, raT_values = ping(arc_devices)
